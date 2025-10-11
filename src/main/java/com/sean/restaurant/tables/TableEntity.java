@@ -12,7 +12,7 @@ public class TableEntity {
     @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false,unique = true)
     private String label;
 
     @Column(nullable = false)
