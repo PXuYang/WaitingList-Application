@@ -11,6 +11,7 @@ This project documents the design for a cross-platform application that helps re
 
 ## Documentation
 - [Application Design](docs/application-design.md): Product vision, architecture, data model, and roadmap for implementing the platform.
+- [Getting Started Guide](docs/getting-started.md): Step-by-step plan for bootstrapping the project and building the MVP.
 
 ## Getting Started (Future Work)
 Implementation has not begun yet. Use the design documentation to guide technology choices, project setup, and development milestones.
