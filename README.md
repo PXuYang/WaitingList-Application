@@ -1,7 +1,17 @@
-# WaitingList-Application
-Simple waiting list and reservation application for restaurant 
-designing your own table map; 
-checking table status, for example, marking a table as taken, bussing, paid, unavailable, and reserved; 
-adding parties to the waiting list and reservations;
-calling and texting customers when they are available to sit.
-This application is able to be used on multiple devices within one account and sync in real time
+# Waiting List & Reservation Platform
+
+This project documents the design for a cross-platform application that helps restaurants manage custom table maps, reservations, and waitlists in real time.
+
+## Highlights
+- Drag-and-drop floor plan designer for creating custom table maps per location.
+- Live table status tracking with states such as Taken, Bussing, Paid, Unavailable, and Reserved.
+- Reservation and waitlist workflows with party details, notes, and arrival tracking.
+- SMS/voice/email notifications to alert guests when tables are ready.
+- Multi-device, multi-location support with real-time synchronization.
+
+## Documentation
+- [Application Design](docs/application-design.md): Product vision, architecture, data model, and roadmap for implementing the platform.
+
+## Getting Started (Future Work)
+Implementation has not begun yet. Use the design documentation to guide technology choices, project setup, and development milestones.
+
