@@ -36,12 +36,34 @@ public class TableController {
     }
 
     @PatchMapping("/{id}/status")
-    public TableEntity setStatus(@PathVariable UUID id, @RequestBody StatusChangeRequest body) {
-        TableEntity t = repo.findById(id).orElseThrow();
-        TableStatus newStatus = TableStatus.valueOf(body.status.toUpperCase());
-        t.setStatus(newStatus);
-        t.setLastChangeTs(Instant.now());
-        return repo.save(t);
+	public TableEntity setStatus(@PathVariable UUID id, @RequestBody StatusChangeRequest body) {
+    	TableEntity t = repo.findById(id).orElseThrow();
+
+    	final String raw = body.status == null ? "" : body.status.trim().toUpperCase();
+    	final TableStatus newStatus;
+    	try {
+        	newStatus = TableStatus.valueOf(raw);
+   	 } catch (IllegalArgumentException e) {
+        	throw new IllegalArgumentException(
+           	 "Invalid status. Allowed: AVAILABLE, RESERVED, SEATED, PAID, BUSSING, UNAVAILABLE"
+        );
     }
+
+    t.setStatus(newStatus);
+    t.setLastChangeTs(Instant.now());
+    return repo.save(t);
+}
+
+ 
+    @GetMapping("/{id}")
+    public TableEntity getOne(@PathVariable UUID id) {
+    	return repo.findById(id).orElseThrow(); // your GlobalExceptionHandler returns 404
+	}
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID id) {
+    	TableEntity t = repo.findById(id).orElseThrow();
+    	repo.delete(t);
+}
 }
 
