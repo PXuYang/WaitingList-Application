@@ -5,6 +5,8 @@ import com.sean.restaurant.tables.dto.StatusChangeRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 import java.time.Instant;
 import java.util.List;
@@ -19,11 +21,21 @@ public class TableController {
         this.repo = repo;
     }
 
-    @GetMapping
-    public List<TableEntity> list() {
-        return repo.findAll();
-    }
+	@GetMapping
+	public List<TableEntity> list(@RequestParam(required = false) String status) {
+    		if (status == null || status.isBlank()) {
+    	    return repo.findAll();
+   	 }
 
+    	final TableStatus s;
+    	try {
+      	  s = TableStatus.valueOf(status.trim().toUpperCase());
+   	 } catch (Exception e) {
+     	   throw new IllegalArgumentException("Invalid status.");
+   	 }
+
+    	return repo.findByStatus(s);
+}
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public TableEntity create(@Valid @RequestBody CreateTableRequest req) {
