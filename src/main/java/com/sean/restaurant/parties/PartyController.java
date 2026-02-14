@@ -1,3 +1,4 @@
+
 package com.sean.restaurant.parties;
 
 import com.sean.restaurant.parties.dto.CreatePartyRequest;
@@ -5,6 +6,8 @@ import com.sean.restaurant.parties.dto.UpdatePartyStatusRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 import java.time.Instant;
 import java.util.List;
@@ -21,9 +24,36 @@ public class PartyController {
     }
 
     @GetMapping
-    public List<PartyEntity> list() {
-        return repo.findAllByCreatedAsc();
+public List<PartyEntity> list(@RequestParam(required = false) String kind,
+                              @RequestParam(required = false) String status) {
+
+    PartyKind k = null;
+    PartyStatus s = null;
+
+    if (kind != null && !kind.isBlank()) {
+        try {
+            k = PartyKind.valueOf(kind.trim().toUpperCase());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid kind. Allowed: WAITLIST, RESERVATION");
+        }
     }
+
+    if (status != null && !status.isBlank()) {
+        try {
+            s = PartyStatus.valueOf(status.trim().toUpperCase());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid status. Allowed: WAITING, CALLED, SEATED, CANCELLED, NO_SHOW");
+        }
+    }
+
+    if (k != null && s != null) return repo.findByKindAndStatus(k, s);
+    if (k != null) return repo.findByKind(k);
+    if (s != null) return repo.findByStatus(s);
+
+    return repo.findAllByOrderByCreatedAtAsc();
+}
+
+
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
