@@ -30,6 +30,13 @@ public class SeatingController {
         PartyEntity party = partyRepo.findById(req.partyId).orElseThrow();
         TableEntity table = tableRepo.findById(req.tableId).orElseThrow();
 
+	if (party.getSize() > table.getCapacity()) {
+    throw new IllegalArgumentException(
+        "Party size (" + party.getSize() + ") exceeds table capacity (" +
+ table.getCapacity() + ")."
+    );
+}
+
         if (party.getStatus() == PartyStatus.CANCELLED
                 || party.getStatus() == PartyStatus.NO_SHOW
                 || party.getStatus() == PartyStatus.SEATED) {
