@@ -30,20 +30,24 @@ public class SeatingController {
         PartyEntity party = partyRepo.findById(req.partyId).orElseThrow();
         TableEntity table = tableRepo.findById(req.tableId).orElseThrow();
 
-        // Rule 1: capacity
-        if (party.getSize() > table.getCapacity()) {
-            throw new IllegalArgumentException(
-                "Party size (" + party.getSize() + ") exceeds table capacity (" +
-                table.getCapacity() + ")."
-            );
+	if (party.getSize() > table.getCapacity()) {
+    throw new IllegalArgumentException(
+        "Party size (" + party.getSize() + ") exceeds table capacity (" +
+ table.getCapacity() + ")."
+    );
+
+if (party.getStatus() != PartyStatus.WAITING && party.getStatus() != PartyStatus.CALLED) {
+    throw new IllegalArgumentException("Only WAITING or CALLED parties can be seated.");
+}
+
+}
+
+        if (party.getStatus() == PartyStatus.CANCELLED
+                || party.getStatus() == PartyStatus.NO_SHOW
+                || party.getStatus() == PartyStatus.SEATED) {
+            throw new IllegalArgumentException("Party must be WAITING or CALLED to be seated.");
         }
 
-        // Rule 2: only WAITING or CALLED can be seated
-        if (party.getStatus() != PartyStatus.WAITING && party.getStatus() != PartyStatus.CALLED) {
-            throw new IllegalArgumentException("Only WAITING or CALLED parties can be seated.");
-        }
-
-        // Rule 3: table must be seatable
         if (table.getStatus() == TableStatus.SEATED) {
             throw new IllegalArgumentException("Table is already seated.");
         }
@@ -56,18 +60,13 @@ public class SeatingController {
         table.setStatus(TableStatus.SEATED);
         table.setActivePartyId(party.getId());
         table.setLastChangeTs(Instant.now());
-
         party.setStatus(PartyStatus.SEATED);
 
         tableRepo.save(table);
         partyRepo.save(party);
 
-        return new SeatingResponse(
-                table.getId(),
-                party.getId(),
-                table.getStatus().name(),
-                party.getStatus().name()
-        );
+        return new SeatingResponse(table.getId(), party.getId(),
+                table.getStatus().name(), party.getStatus().name());
     }
 
     @PostMapping("/paid")
@@ -110,28 +109,29 @@ public class SeatingController {
         return tableRepo.save(table);
     }
 
-    @PostMapping("/unseat")
-    @ResponseStatus(HttpStatus.OK)
-    @Transactional
-    public TableEntity unseat(@RequestBody TableActionRequest req) {
-        TableEntity table = tableRepo.findById(req.tableId).orElseThrow();
+@PostMapping("/unseat")
+@ResponseStatus(HttpStatus.OK)
+@Transactional
+public TableEntity unseat(@RequestBody TableActionRequest req) {
+    TableEntity table = tableRepo.findById(req.tableId).orElseThrow();
 
-        if (table.getActivePartyId() == null) {
-            throw new IllegalArgumentException("Table has no active party to unseat.");
-        }
-        if (table.getStatus() != TableStatus.SEATED) {
-            throw new IllegalArgumentException("Table must be SEATED to unseat.");
-        }
-
-        PartyEntity party = partyRepo.findById(table.getActivePartyId()).orElseThrow();
-        party.setStatus(PartyStatus.WAITING);
-        partyRepo.save(party);
-
-        table.setStatus(TableStatus.AVAILABLE);
-        table.setActivePartyId(null);
-        table.setLastChangeTs(Instant.now());
-        return tableRepo.save(table);
+    if (table.getActivePartyId() == null) {
+        throw new IllegalArgumentException("Table has no active party to unseat.");
     }
+    if (table.getStatus() != TableStatus.SEATED) {
+        throw new IllegalArgumentException("Table must be SEATED to unseat.");
+    }
+
+    PartyEntity party = partyRepo.findById(table.getActivePartyId()).orElseThrow();
+    party.setStatus(PartyStatus.WAITING);
+    partyRepo.save(party);
+
+    table.setStatus(TableStatus.AVAILABLE);
+    table.setActivePartyId(null);
+    table.setLastChangeTs(Instant.now());
+    return tableRepo.save(table);
+}
+
 
     public record SeatingResponse(UUID tableId, UUID partyId, String tableStatus, String partyStatus) {}
 }
