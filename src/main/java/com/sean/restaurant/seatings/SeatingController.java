@@ -104,5 +104,29 @@ public class SeatingController {
         return tableRepo.save(table);
     }
 
+@PostMapping("/unseat")
+@ResponseStatus(HttpStatus.OK)
+@Transactional
+public TableEntity unseat(@RequestBody TableActionRequest req) {
+    TableEntity table = tableRepo.findById(req.tableId).orElseThrow();
+
+    if (table.getActivePartyId() == null) {
+        throw new IllegalArgumentException("Table has no active party to unseat.");
+    }
+    if (table.getStatus() != TableStatus.SEATED) {
+        throw new IllegalArgumentException("Table must be SEATED to unseat.");
+    }
+
+    PartyEntity party = partyRepo.findById(table.getActivePartyId()).orElseThrow();
+    party.setStatus(PartyStatus.WAITING);
+    partyRepo.save(party);
+
+    table.setStatus(TableStatus.AVAILABLE);
+    table.setActivePartyId(null);
+    table.setLastChangeTs(Instant.now());
+    return tableRepo.save(table);
+}
+
+
     public record SeatingResponse(UUID tableId, UUID partyId, String tableStatus, String partyStatus) {}
 }
